@@ -196,7 +196,7 @@ export function SettingsPage() {
 
           <div className="pt-6 border-t border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Code className="h-5 w-5 text-blue-600" /> Setup Instructions
+              <Code className="h-5 w-5 text-red-600" /> Setup Instructions
             </h3>
             
             <ol className="list-decimal list-inside space-y-4 text-gray-700 text-sm">

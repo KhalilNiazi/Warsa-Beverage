@@ -43,6 +43,16 @@ export interface Outlet {
   OB: string;
   Status: string;
   CustomRates: Record<string, number>;
+  OpeningBalance?: number;
+}
+
+export interface PaymentRecord {
+  ID: string;
+  Date: string;
+  OutletID: string;
+  Amount: number;
+  Notes: string;
+  Type?: 'RECEIPT' | 'RETURN';
 }
 
 export interface Settings {

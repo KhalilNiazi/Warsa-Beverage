@@ -50,6 +50,7 @@ export function Outlets() {
       ContactNumber: editingOutlet.ContactNumber || '',
       OwnerName: editingOutlet.OwnerName || '',
       OB: editingOutlet.OB || '',
+      OpeningBalance: Number(editingOutlet.OpeningBalance) || 0,
       Status: editingOutlet.Status || '',
       CustomRates: editingOutlet.CustomRates || {}
     } as Outlet;
@@ -78,8 +79,9 @@ export function Outlets() {
   };
 
   const filteredOutlets = outlets.filter(o => 
-    o.Name.toLowerCase().includes(search.toLowerCase()) || 
-    o.Route.toLowerCase().includes(search.toLowerCase())
+    (o.Name || '').toLowerCase().includes(search.toLowerCase()) || 
+    (o.Code || '').toLowerCase().includes(search.toLowerCase()) ||
+    (o.Route || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -127,6 +129,10 @@ export function Outlets() {
                   <Input placeholder="Order Booker Name" value={editingOutlet.OB || ''} onChange={e => setEditingOutlet({...editingOutlet, OB: e.target.value})} />
                 </div>
                 <div className="space-y-2">
+                  <label className="text-xs font-semibold text-gray-600 uppercase">Opening Balance (Rs)</label>
+                  <Input type="number" placeholder="0" value={editingOutlet.OpeningBalance || ''} onChange={e => setEditingOutlet({...editingOutlet, OpeningBalance: Number(e.target.value)})} />
+                </div>
+                <div className="space-y-2">
                   <label className="text-xs font-semibold text-gray-600 uppercase">Owner Name</label>
                   <Input placeholder="Owner" value={editingOutlet.OwnerName || ''} onChange={e => setEditingOutlet({...editingOutlet, OwnerName: e.target.value})} />
                 </div>
@@ -172,7 +178,7 @@ export function Outlets() {
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input
-                placeholder="Search outlets..."
+                placeholder="Search by name, code, or route..."
                 className="pl-9 h-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -189,17 +195,21 @@ export function Outlets() {
                 <div className="p-8 text-center text-gray-500">No outlets found.</div>
               ) : (
                 filteredOutlets.map((outlet) => (
-                  <div key={outlet.ID} className="p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between hover:bg-gray-50/50 transition-colors">
+                  <div 
+                    key={outlet.ID} 
+                    className="p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between hover:bg-gray-50/50 transition-colors cursor-pointer"
+                    onClick={() => { setEditingOutlet(outlet); setIsEditing(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  >
                     <div className="flex gap-3 items-center">
-                      <div className="bg-blue-50 p-2 rounded-full flex-shrink-0">
-                        <Store className="h-5 w-5 text-blue-600" />
+                      <div className="bg-red-50 p-2 rounded-full flex-shrink-0">
+                        <Store className="h-5 w-5 text-red-600" />
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold text-gray-900">{outlet.Code} - {outlet.Name}</p>
                         <p className="text-sm text-gray-500">{outlet.Route} {outlet.Address ? `• ${outlet.Address}` : ''}</p>
                         <div className="flex gap-2 mt-1">
                           {Object.keys(outlet.CustomRates || {}).length > 0 && (
-                            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                            <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-700/10">
                               {Object.keys(outlet.CustomRates || {}).length} Custom Rates
                             </span>
                           )}
@@ -208,10 +218,10 @@ export function Outlets() {
                       </div>
                     </div>
                     <div className="flex gap-2 self-end sm:self-auto">
-                      <Button variant="ghost" size="sm" onClick={() => { setEditingOutlet(outlet); setIsEditing(true); }}>
+                      <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setEditingOutlet(outlet); setIsEditing(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
                         <Edit className="h-4 w-4 mr-2" /> Edit
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" onClick={() => handleDelete(outlet.ID)}>
+                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" onClick={(e) => { e.stopPropagation(); handleDelete(outlet.ID); }}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

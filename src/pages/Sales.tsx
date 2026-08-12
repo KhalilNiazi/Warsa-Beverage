@@ -7,127 +7,9 @@ import { InventoryItem, SaleRecord, Outlet, InvoiceItem } from '@/src/types';
 import { ShoppingCart, Search, Receipt, Plus, Trash2, FileText, ChevronDown, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/src/lib/utils';
+import { InvoiceDetailModal } from '@/src/components/InvoiceDetailModal';
 
-const PrintOrderView = ({ sale, outlets }: { sale: SaleRecord | null, outlets: Outlet[] }) => {
-  if (!sale) return null;
-  const outlet = outlets.find(o => o.Name === sale.OutletName || o.Address === sale.Address);
-  
-  return (
-    <div className="hidden print:block w-full bg-white text-black font-sans p-0 m-0">
-      <style type="text/css" media="print">
-        {`
-          @page { size: portrait; margin: 0.5cm; }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white; }
-          .print\\:hidden { display: none !important; }
-        `}
-      </style>
-      
-      <table className="w-full border-collapse border-2 border-black text-xs font-bold text-center">
-        <colgroup>
-          <col width="16%" />
-          <col width="28%" />
-          <col width="16%" />
-          <col width="14%" />
-          <col width="14%" />
-          <col width="12%" />
-        </colgroup>
-        <tbody>
-          <tr>
-            <td colSpan={5} className="bg-black text-white py-2 text-lg uppercase tracking-widest border border-black">WARSA PURE WATER</td>
-            <td className="bg-[#ffff00] text-black border border-black text-base">CODE</td>
-          </tr>
-          <tr>
-            <td colSpan={5} className="border border-black py-2 text-sm">2 Abbot Road Chowk Lakshmi Lahore(0311-1199778)</td>
-            <td className="bg-[#ffff00] text-black border border-black text-base">{outlet?.Code || '-'}</td>
-          </tr>
-          
-          <tr className="bg-white">
-            <td className="border border-black py-1.5 uppercase">OUTLET NAME</td>
-            <td className="border border-black py-1.5 uppercase text-sm">{sale.OutletName}</td>
-            <td className="border border-black py-1.5 uppercase">INVOICE #</td>
-            <td colSpan={2} className="bg-[#f0d060] border border-black py-1.5 uppercase italic">ORIGINAL</td>
-            <td className="border border-black py-1.5 uppercase underline">CREDIT</td>
-          </tr>
-          <tr className="bg-white">
-            <td className="border border-black py-1.5 uppercase">ROUT</td>
-            <td className="border border-black py-1.5 uppercase">{sale.Route}</td>
-            <td className="border border-black py-1.5 uppercase">DATE#</td>
-            <td colSpan={2} className="border border-black py-1.5 uppercase">{format(new Date(sale.Date), 'M/d/yyyy HH:mm')}</td>
-            <td className="border border-black py-1.5 underline">0</td>
-          </tr>
-          <tr className="bg-white">
-            <td className="border border-black py-1.5 uppercase">ADDRESS</td>
-            <td className="border border-black py-1.5 uppercase">{sale.Address}</td>
-            <td className="border border-black py-1.5 uppercase">STATUS</td>
-            <td colSpan={2} className="border border-black py-1.5 uppercase">{sale.Status || 'General trader'}</td>
-            <td className="border-l border-r border-black border-b-0 py-1.5"></td>
-          </tr>
-          <tr className="bg-white">
-            <td className="border border-black py-1.5 uppercase">Contact Number</td>
-            <td className="border border-black py-1.5 uppercase">{sale.ContactNumber || '0'}</td>
-            <td className="border border-black py-1.5 uppercase">OWNER NAME</td>
-            <td className="border border-black py-1.5 uppercase">{sale.OwnerName}</td>
-            <td className="bg-[#f0d060] border border-black py-1.5 uppercase">{outlet?.OB || '-'}</td>
-            <td className="border-l border-r border-black border-t-0 border-b-0 py-1.5">0</td>
-          </tr>
-          
-          <tr className="bg-white">
-            <td className="border border-black py-2 uppercase">ITEMS</td>
-            <td className="border border-black py-2 uppercase">DESCREPTION</td>
-            <td className="border border-black py-2 uppercase">QUANTITY</td>
-            <td className="border border-black py-2 uppercase">PRICE</td>
-            <td className="border border-black py-2 uppercase">AMOUNT</td>
-            <td className="border-l border-r border-black border-t-0 border-b-0 py-2"></td>
-          </tr>
-          
-          {sale.Items.map((item, idx) => (
-            <tr key={idx} className="bg-white">
-              <td className="border border-black py-2 text-[#c00000]">{idx + 1}</td>
-              <td className="border border-black py-2 uppercase">{item.ProductName}</td>
-              <td className={cn("border border-black py-2", item.Quantity > 0 ? "bg-[#daeef3]" : "")}>{item.Quantity || ''}</td>
-              <td className="border border-black py-2">{item.Price}</td>
-              <td className={cn("border border-black py-2", item.Quantity > 0 ? "bg-[#daeef3]" : "")}>{item.Amount}</td>
-              <td className="border-l border-r border-black border-t-0 border-b-0 py-2"></td>
-            </tr>
-          ))}
-          
-          <tr className="bg-[#ebf1de]">
-            <td className="border border-black py-2">{sale.Items.length + 1}</td>
-            <td className="border border-black py-2 uppercase italic text-left px-2">PROMO 500 ml</td>
-            <td className="border border-black py-2"></td>
-            <td className="border border-black py-2"></td>
-            <td className="border border-black py-2"></td>
-            <td className="border-l border-r border-black border-t-0 border-b-0 py-2"></td>
-          </tr>
-          
-          <tr className="bg-white">
-            <td colSpan={2} className="border border-black py-2 text-right px-4 uppercase">TOTAL CASES</td>
-            <td className="border border-black py-2">{sale.TotalCases}</td>
-            <td className="border border-black py-2 border-b-0"></td>
-            <td className="border border-black py-2 border-b-0"></td>
-            <td className="border-l border-r border-black border-t-0 border-b-0 py-2"></td>
-          </tr>
-          
-          <tr className="bg-white">
-            <td colSpan={3} rowSpan={3} className="border border-black p-4 align-bottom text-left text-sm font-normal">
-              Customer Signature
-            </td>
-            <td className="border border-black py-2 uppercase">TOTAL AMOUNT</td>
-            <td colSpan={2} className="border border-black py-2">{sale.TotalAmount}</td>
-          </tr>
-          <tr className="bg-white">
-            <td className="border border-black py-2 uppercase">DISCOUNT</td>
-            <td colSpan={2} className="border border-black py-2">{sale.Discount || 0}</td>
-          </tr>
-          <tr className="bg-white">
-            <td className="border border-black py-2 uppercase">GRAND TOTAL</td>
-            <td colSpan={2} className="border border-black py-2">{sale.GrandTotal}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  );
-};
+import { PrintOrderView } from '@/src/components/PrintOrderView';
 
 export function Sales() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -138,6 +20,7 @@ export function Sales() {
   const [search, setSearch] = useState('');
   
   const [printSale, setPrintSale] = useState<SaleRecord | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<SaleRecord | null>(null);
 
   // Order form state
   const [selectedOutletId, setSelectedOutletId] = useState('');
@@ -290,7 +173,7 @@ export function Sales() {
 
   const filteredSales = sales.filter(sale => 
     (sale.OutletName || '').toLowerCase().includes(search.toLowerCase()) || 
-    sale.ID.includes(search)
+    (sale.ID || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const [showIframeWarning, setShowIframeWarning] = useState(false);
@@ -335,7 +218,7 @@ export function Sales() {
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-gray-600 uppercase">Select Outlet / Customer</label>
                   <select 
-                    className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                    className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                     value={selectedOutletId}
                     onChange={handleOutletSelect}
                   >
@@ -388,7 +271,7 @@ export function Sales() {
                           <div className="w-full sm:flex-1 space-y-2">
                             <label className="text-xs font-medium text-gray-500">Product</label>
                             <select 
-                              className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                              className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                               value={item.product}
                               onChange={e => handleUpdateItem(idx, 'product', e.target.value)}
                               required
@@ -474,7 +357,7 @@ export function Sales() {
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                 <Input
-                  placeholder="Search orders by outlet..."
+                  placeholder="Search by outlet or invoice..."
                   className="pl-9 h-9"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -509,15 +392,15 @@ export function Sales() {
                         </tr>
                       ) : (
                         filteredSales.map((sale) => (
-                          <tr key={sale.ID} className="bg-white border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                            <td className="px-6 py-4 font-medium text-gray-900">#{sale.ID}</td>
+                          <tr key={sale.ID} onClick={() => setSelectedInvoice(sale)} className="bg-white border-b border-gray-50 hover:bg-gray-50/50 transition-colors cursor-pointer">
+                            <td className="px-6 py-4 font-medium text-red-600 hover:underline">#{sale.ID}</td>
                             <td className="px-6 py-4 text-gray-500">{format(new Date(sale.Date), 'MMM dd, yyyy h:mm a')}</td>
                             <td className="px-6 py-4 font-medium text-gray-900">{sale.OutletName}</td>
                             <td className="px-6 py-4">{sale.TotalCases}</td>
                             <td className="px-6 py-4 font-bold text-right">PKR {(sale.GrandTotal || 0).toFixed(2)}</td>
                             <td className="px-6 py-4 text-right">
-                              <Button variant="ghost" size="sm" onClick={() => triggerPrint(sale)}>
-                                <Printer className="h-4 w-4 text-blue-600" />
+                              <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); triggerPrint(sale); }}>
+                                <Printer className="h-4 w-4 text-red-600" />
                               </Button>
                             </td>
                           </tr>
@@ -533,18 +416,18 @@ export function Sales() {
                     <div className="p-8 text-center text-gray-500">No orders found.</div>
                   ) : (
                     filteredSales.map((sale) => (
-                      <div key={sale.ID} className="p-4 flex gap-3 items-center">
-                        <div className="bg-blue-50 p-2 rounded-full flex-shrink-0">
-                          <Receipt className="h-5 w-5 text-blue-600" />
+                      <div key={sale.ID} onClick={() => setSelectedInvoice(sale)} className="p-4 flex gap-3 items-center cursor-pointer hover:bg-gray-50 transition-colors">
+                        <div className="bg-red-50 p-2 rounded-full flex-shrink-0">
+                          <Receipt className="h-5 w-5 text-red-600" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-gray-900 truncate">{sale.OutletName}</p>
-                          <p className="text-xs text-gray-500">Inv #{sale.ID} • {format(new Date(sale.Date), 'MMM dd, h:mm a')}</p>
+                          <p className="text-xs text-gray-500 font-medium text-red-600">Inv #{sale.ID} • {format(new Date(sale.Date), 'MMM dd, h:mm a')}</p>
                         </div>
                         <div className="text-right flex-shrink-0">
                           <p className="font-semibold text-gray-900">PKR {(sale.GrandTotal || 0).toFixed(2)}</p>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 mt-1" onClick={() => triggerPrint(sale)}>
-                            <Printer className="h-4 w-4 text-blue-600" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8 mt-1" onClick={(e) => { e.stopPropagation(); triggerPrint(sale); }}>
+                            <Printer className="h-4 w-4 text-red-600" />
                           </Button>
                         </div>
                       </div>
@@ -556,6 +439,10 @@ export function Sales() {
           </CardContent>
         </Card>
       </div>
+
+      {selectedInvoice && (
+        <InvoiceDetailModal invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
+      )}
     </>
   );
 }

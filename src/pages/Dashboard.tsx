@@ -53,7 +53,7 @@ export function Dashboard() {
   }));
 
   if (loading) {
-    return <div className="p-8 flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
+    return <div className="p-8 flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div></div>;
   }
 
   return (
@@ -105,32 +105,55 @@ export function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <Card className="col-span-1">
           <CardHeader>
             <CardTitle className="text-base md:text-lg">Revenue (Last 7 Days)</CardTitle>
           </CardHeader>
           <CardContent>
             {chartData.length > 0 ? (
-              <div className="h-[250px] md:h-[300px] w-full mt-4">
+              <div className="h-[250px] w-full mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} tickFormatter={(value) => `PKR ${value}`} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} tickFormatter={(value) => `PKR ${value}`} width={75} />
                     <Tooltip cursor={{ fill: '#f3f4f6' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    <Bar dataKey="revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Revenue" />
+                    <Bar dataKey="revenue" fill="#ef4444" radius={[4, 4, 0, 0]} name="Revenue" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="h-[250px] md:h-[300px] flex items-center justify-center text-gray-500 text-sm">No sales data available</div>
+              <div className="h-[250px] flex items-center justify-center text-gray-500 text-sm">No sales data available</div>
             )}
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
-          <Card>
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle className="text-base md:text-lg">Inventory Levels</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {inventoryChartData.length > 0 ? (
+              <div className="h-[250px] w-full mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={inventoryChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} width={40} />
+                    <Tooltip cursor={{ fill: '#f3f4f6' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    <Bar dataKey="stock" fill="#10b981" radius={[4, 4, 0, 0]} name="In Stock" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[250px] flex items-center justify-center text-gray-500 text-sm">No inventory data available</div>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="col-span-1 lg:col-span-2 xl:col-span-1">
+          <Card className="h-full">
             <CardHeader>
               <CardTitle className="text-red-600 flex items-center gap-2 text-base md:text-lg">
                 <AlertTriangle className="h-5 w-5" /> Needs Attention
@@ -138,7 +161,7 @@ export function Dashboard() {
             </CardHeader>
             <CardContent>
               {lowStockItems.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[250px] overflow-y-auto pr-2 no-scrollbar">
                   {lowStockItems.map(item => (
                     <div key={item.ID} className="flex justify-between items-center pb-4 border-b border-gray-100 last:border-0 last:pb-0">
                       <div>
@@ -158,31 +181,6 @@ export function Dashboard() {
             </CardContent>
           </Card>
         </div>
-      </div>
-      
-      <div className="grid grid-cols-1 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Inventory Levels</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {inventoryChartData.length > 0 ? (
-              <div className="h-[250px] md:h-[300px] w-full mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={inventoryChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />
-                    <Tooltip cursor={{ fill: '#f3f4f6' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    <Bar dataKey="stock" fill="#10b981" radius={[4, 4, 0, 0]} name="In Stock" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-[250px] md:h-[300px] flex items-center justify-center text-gray-500 text-sm">No inventory data available</div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

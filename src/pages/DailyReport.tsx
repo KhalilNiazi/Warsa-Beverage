@@ -3,7 +3,10 @@ import { Input } from '@/src/components/ui/input';
 import { Button } from '@/src/components/ui/button';
 import { fetchSales, fetchInventory, fetchOutlets } from '@/src/api';
 import { SaleRecord, InventoryItem, Outlet } from '@/src/types';
-import { Printer } from 'lucide-react';
+import { Printer, MessageCircle } from 'lucide-react';
+import { useRef } from 'react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { format, isSameDay, parseISO } from 'date-fns';
 
 export function DailyReport() {
@@ -13,6 +16,50 @@ export function DailyReport() {
   const [loading, setLoading] = useState(true);
   
   const [showIframeWarning, setShowIframeWarning] = useState(false);
+
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleWhatsAppShare = async () => {
+    if (!reportRef.current) return;
+    setIsGenerating(true);
+    try {
+      const canvas = await html2canvas(reportRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      
+      const pdfBlob = pdf.output('blob');
+      const file = new File([pdfBlob], `Daily_Report_${selectedDate}.pdf`, { type: 'application/pdf' });
+      
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `Daily Report ${selectedDate}`,
+          text: `Here is the daily report for ${selectedDate}.`
+        });
+      } else {
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        window.open(`https://wa.me/?text=Please%20find%20the%20downloaded%20Daily%20Report%20for%20${selectedDate}%20attached.`, '_blank');
+      }
+    } catch (error) {
+      console.error('Error sharing report:', error);
+      alert('Failed to generate or share PDF.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handlePrint = () => {
     if (window.self !== window.top) {
@@ -116,7 +163,11 @@ export function DailyReport() {
               onChange={(e) => setSelectedDate(e.target.value)}
               className="w-40"
             />
-            <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={handleWhatsAppShare} className="bg-green-600 hover:bg-green-700 text-white" disabled={isGenerating}>
+              <MessageCircle className="w-4 h-4 mr-2" />
+              {isGenerating ? 'Preparing...' : 'Share WA'}
+            </Button>
+            <Button onClick={handlePrint} className="bg-red-600 hover:bg-red-700">
               <Printer className="w-4 h-4 mr-2" />
               Print Report
             </Button>
@@ -126,7 +177,10 @@ export function DailyReport() {
         {loading ? (
           <div className="p-8 text-center text-gray-500 print:hidden">Loading report...</div>
         ) : (
-          <div className="w-full bg-white print:bg-white text-black font-sans text-xs">
+          <div ref={reportRef} className="w-full bg-white print:bg-white text-black font-sans text-xs p-4">
+            <div className="text-center mb-4 font-bold text-lg uppercase tracking-widest border-b-2 border-black pb-2">
+              WARSA PURE WATER - DAILY SALES REPORT ({format(parseISO(selectedDate), 'dd MMM yyyy')})
+            </div>
             {/* Main Table */}
             <table className="w-full border-collapse border border-black mb-4 print:mb-2">
               <thead>
@@ -207,8 +261,8 @@ export function DailyReport() {
                        <thead>
                          <tr>
                            <th className="border border-black border-t-0 py-1 bg-[#d9d9d9] font-bold"></th>
-                           {columns.map(col => <th key={col.ID} className="border border-black border-t-0 py-1 bg-[#c5c5c5] italic text-xs font-bold text-blue-900">{col.Name}</th>)}
-                           <th className="border border-black border-t-0 border-r-0 py-1 bg-[#c5c5c5] italic text-xs font-bold text-blue-900">TOTAL</th>
+                           {columns.map(col => <th key={col.ID} className="border border-black border-t-0 py-1 bg-[#c5c5c5] italic text-xs font-bold text-red-900">{col.Name}</th>)}
+                           <th className="border border-black border-t-0 border-r-0 py-1 bg-[#c5c5c5] italic text-xs font-bold text-red-900">TOTAL</th>
                          </tr>
                        </thead>
                        <tbody>

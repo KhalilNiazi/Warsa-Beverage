@@ -1,9 +1,10 @@
-import { InventoryItem, SaleRecord, Outlet } from './types';
+import { InventoryItem, SaleRecord, Outlet, PaymentRecord } from './types';
 
 const SETTINGS_KEY = 'warsa_settings';
 const MOCK_INVENTORY_KEY = 'warsa_mock_inventory';
 const MOCK_SALES_KEY = 'warsa_mock_sales';
 const MOCK_OUTLETS_KEY = 'warsa_mock_outlets';
+const MOCK_PAYMENTS_KEY = 'warsa_mock_payments';
 
 export const getSettings = () => {
   const settings = localStorage.getItem(SETTINGS_KEY);
@@ -211,4 +212,43 @@ export const deleteOutlet = async (id: string): Promise<void> => {
   });
   const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to delete outlet');
+};
+
+const getMockPayments = (): PaymentRecord[] => {
+  const data = localStorage.getItem(MOCK_PAYMENTS_KEY);
+  if (data) return JSON.parse(data);
+  return [];
+};
+
+export const fetchPayments = async (): Promise<PaymentRecord[]> => {
+  const { appsScriptUrl } = getSettings();
+  if (!appsScriptUrl) return getMockPayments();
+
+  try {
+    const res = await fetch(`${appsScriptUrl}?action=getPayments`);
+    const json = await res.json();
+    if (json.success) return json.data;
+    throw new Error(json.error || 'Failed to fetch payments');
+  } catch (err) {
+    console.error("Using fallback data due to fetch error:", err);
+    return getMockPayments();
+  }
+};
+
+export const addPaymentRecord = async (payment: PaymentRecord): Promise<void> => {
+  const { appsScriptUrl } = getSettings();
+  if (!appsScriptUrl) {
+    const payments = getMockPayments();
+    payments.push(payment);
+    localStorage.setItem(MOCK_PAYMENTS_KEY, JSON.stringify(payments));
+    return;
+  }
+
+  const res = await fetch(`${appsScriptUrl}?action=addPayment`, {
+    method: 'POST',
+    body: JSON.stringify(payment),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'Failed to record payment');
 };
