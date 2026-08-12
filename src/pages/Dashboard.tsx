@@ -5,6 +5,7 @@ import { InventoryItem, SaleRecord } from '@/src/types';
 import { PackageSearch, AlertTriangle, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/src/lib/utils';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 export function Dashboard() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -46,7 +47,10 @@ export function Dashboard() {
     revenue: salesByDate[date]
   })).slice(-7); // last 7 days roughly
 
-  const maxRevenue = Math.max(...chartData.map(d => d.revenue), 1);
+  const inventoryChartData = inventory.map(item => ({
+    name: item.Name.length > 15 ? item.Name.substring(0, 15) + '...' : item.Name,
+    stock: item.Quantity
+  }));
 
   if (loading) {
     return <div className="p-8 flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
@@ -108,21 +112,16 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             {chartData.length > 0 ? (
-              <div className="h-[250px] md:h-[300px] w-full flex items-end justify-between gap-2 pt-4">
-                {chartData.map((d, i) => (
-                  <div key={i} className="flex flex-col items-center justify-end h-full w-full group relative">
-                    <div className="absolute -top-8 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                      PKR {d.revenue.toFixed(2)}
-                    </div>
-                    <div 
-                      className="w-full bg-blue-500 hover:bg-blue-600 rounded-t-sm transition-all"
-                      style={{ height: `${(d.revenue / maxRevenue) * 100}%`, minHeight: '4px' }}
-                    />
-                    <div className="text-[10px] md:text-xs text-gray-500 mt-2 truncate w-full text-center">
-                      {d.name.split(' ')[0]}
-                    </div>
-                  </div>
-                ))}
+              <div className="h-[250px] md:h-[300px] w-full mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} tickFormatter={(value) => `PKR ${value}`} />
+                    <Tooltip cursor={{ fill: '#f3f4f6' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    <Bar dataKey="revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Revenue" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             ) : (
               <div className="h-[250px] md:h-[300px] flex items-center justify-center text-gray-500 text-sm">No sales data available</div>
@@ -159,6 +158,31 @@ export function Dashboard() {
             </CardContent>
           </Card>
         </div>
+      </div>
+      
+      <div className="grid grid-cols-1 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base md:text-lg">Inventory Levels</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {inventoryChartData.length > 0 ? (
+              <div className="h-[250px] md:h-[300px] w-full mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={inventoryChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />
+                    <Tooltip cursor={{ fill: '#f3f4f6' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    <Bar dataKey="stock" fill="#10b981" radius={[4, 4, 0, 0]} name="In Stock" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[250px] md:h-[300px] flex items-center justify-center text-gray-500 text-sm">No inventory data available</div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
