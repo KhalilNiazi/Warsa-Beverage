@@ -1,0 +1,76 @@
+--- src/pages/Sales.tsx
++++ src/pages/Sales.tsx
+@@ -171,18 +171,28 @@
+   useEffect(() => {
+     loadData();
+   }, []);
+ 
+   useEffect(() => {
+     if (printSale) {
+-      const timer = setTimeout(() => {
+-        window.print();
+-      }, 200);
++      let timer = setTimeout(() => {
++        try {
++          window.print();
++        } catch (e) {
++          console.error(e);
++        }
++      }, 300);
+       return () => clearTimeout(timer);
+     }
+   }, [printSale]);
+ 
+   useEffect(() => {
+-    const handleAfterPrint = () => setPrintSale(null);
++    const handleAfterPrint = () => {
++      // Wait a bit before clearing to ensure the print dialog has fully captured the DOM
++      setTimeout(() => {
++        setPrintSale(null);
++      }, 1000);
++    };
+     window.addEventListener('afterprint', handleAfterPrint);
+     return () => window.removeEventListener('afterprint', handleAfterPrint);
+   }, []);
+@@ -291,10 +301,23 @@
+     sale.ID.includes(search)
+   );
+ 
++  const [showIframeWarning, setShowIframeWarning] = useState(false);
++
++  const triggerPrint = (sale: SaleRecord) => {
++    if (window.self !== window.top) {
++      setShowIframeWarning(true);
++    }
++    setPrintSale(sale);
++  };
++
+   return (
+     <>
+       <PrintOrderView sale={printSale} outlets={outlets} />
+       
++      {showIframeWarning && (
++        <div className="bg-amber-100 text-amber-800 p-4 rounded-md mb-4 max-w-7xl mx-auto flex justify-between items-center print:hidden">
++          <p><strong>Note:</strong> If the print dialog didn't open, it's because the preview window blocks popups. Please click the <strong>"Open in New Tab"</strong> button at the top right of this screen to print.</p>
++          <Button variant="ghost" size="sm" onClick={() => setShowIframeWarning(false)}>Dismiss</Button>
++        </div>
++      )}
++
+       <div className={cn("p-4 md:p-8 max-w-7xl mx-auto space-y-4 md:space-y-6", printSale ? "print:hidden" : "")}>
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+@@ -470,7 +493,7 @@
+                             <td className="px-6 py-4 font-bold text-right">PKR {(sale.GrandTotal || 0).toFixed(2)}</td>
+                             <td className="px-6 py-4 text-right">
+-                              <Button variant="ghost" size="sm" onClick={() => setPrintSale(sale)}>
++                              <Button variant="ghost" size="sm" onClick={() => triggerPrint(sale)}>
+                                 <Printer className="h-4 w-4 text-blue-600" />
+                               </Button>
+                             </td>
+@@ -495,7 +518,7 @@
+                         <div className="text-right flex-shrink-0">
+                           <p className="font-semibold text-gray-900">PKR {(sale.GrandTotal || 0).toFixed(2)}</p>
+-                          <Button variant="ghost" size="icon" className="h-8 w-8 mt-1" onClick={() => setPrintSale(sale)}>
++                          <Button variant="ghost" size="icon" className="h-8 w-8 mt-1" onClick={() => triggerPrint(sale)}>
+                             <Printer className="h-4 w-4 text-blue-600" />
+                           </Button>
+                         </div>

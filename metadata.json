@@ -1,0 +1,6 @@
+{
+  "name": "Warsa Water Tracker",
+  "description": "Sales and inventory tracker for Warsa Water with Google Sheets integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
