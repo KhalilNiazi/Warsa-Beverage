@@ -1,7 +1,7 @@
 import { InventoryItem, SaleRecord, Outlet, PaymentRecord, OrderBooker } from './types';
 
 const SETTINGS_KEY = 'warsa_settings';
-const MOCK_INVENTORY_KEY = 'warsa_mock_inventory';
+const MOCK_INVENTORY_KEY = 'warsa_mock_inventory_empty';
 const MOCK_SALES_KEY = 'warsa_mock_sales';
 const MOCK_OUTLETS_KEY = 'warsa_mock_outlets';
 const MOCK_PAYMENTS_KEY = 'warsa_mock_payments';
@@ -18,15 +18,7 @@ export const saveSettings = (url: string) => {
 const getMockInventory = (): InventoryItem[] => {
   const data = localStorage.getItem(MOCK_INVENTORY_KEY);
   if (data) return JSON.parse(data);
-  const initial = [
-    { ID: '1', Name: '300ML(24B)', SKU: 'WARSA-300-24', Quantity: 1200, Price: 0, MinThreshold: 100 },
-    { ID: '2', Name: '300ML(16B)', SKU: 'WARSA-300-16', Quantity: 800, Price: 0, MinThreshold: 100 },
-    { ID: '3', Name: '500 ML', SKU: 'WARSA-500', Quantity: 500, Price: 370, MinThreshold: 50 },
-    { ID: '4', Name: '1500 ML', SKU: 'WARSA-1500', Quantity: 200, Price: 370, MinThreshold: 20 },
-    { ID: '5', Name: '5. LITER', SKU: 'WARSA-5L', Quantity: 400, Price: 0, MinThreshold: 50 },
-    { ID: '6', Name: '19.LITER', SKU: 'WARSA-19L', Quantity: 300, Price: 0, MinThreshold: 30 },
-    { ID: '7', Name: 'PROMO 500 ml', SKU: 'WARSA-PROMO-500', Quantity: 100, Price: 0, MinThreshold: 10 },
-  ];
+  const initial: InventoryItem[] = [];
   localStorage.setItem(MOCK_INVENTORY_KEY, JSON.stringify(initial));
   return initial;
 };
@@ -157,6 +149,43 @@ export const addSaleRecord = async (sale: SaleRecord): Promise<void> => {
   });
   const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to record sale');
+};
+
+
+export const updateSale = async (sale: SaleRecord): Promise<void> => {
+  const { appsScriptUrl } = getSettings();
+  if (!appsScriptUrl) {
+    const sales = getMockSales();
+    const index = sales.findIndex(s => s.ID === sale.ID);
+    if (index >= 0) {
+      sales[index] = sale;
+      localStorage.setItem(MOCK_SALES_KEY, JSON.stringify(sales));
+    }
+    return;
+  }
+  const res = await fetch(`${appsScriptUrl}?action=updateSale`, {
+    method: 'POST',
+    body: JSON.stringify(sale),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'Failed to update sale');
+};
+
+export const deleteSale = async (id: string): Promise<void> => {
+  const { appsScriptUrl } = getSettings();
+  if (!appsScriptUrl) {
+    const sales = getMockSales();
+    localStorage.setItem(MOCK_SALES_KEY, JSON.stringify(sales.filter(s => s.ID !== id)));
+    return;
+  }
+  const res = await fetch(`${appsScriptUrl}?action=deleteSale`, {
+    method: 'POST',
+    body: JSON.stringify({ ID: id }),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'Failed to delete sale');
 };
 
 export const fetchOutlets = async (): Promise<Outlet[]> => {

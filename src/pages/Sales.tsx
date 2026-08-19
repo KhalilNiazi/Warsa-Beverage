@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card';
 import { Button } from '@/src/components/ui/button';
 import { Input } from '@/src/components/ui/input';
-import { fetchInventory, fetchSales, addSaleRecord, fetchOutlets } from '@/src/api';
+import { fetchInventory, fetchSales, addSaleRecord, fetchOutlets, updateSale, deleteSale } from '@/src/api';
 import { InventoryItem, SaleRecord, Outlet, InvoiceItem } from '@/src/types';
-import { ShoppingCart, Search, Receipt, Plus, Trash2, FileText, ChevronDown, Printer } from 'lucide-react';
+import { ShoppingCart, Search, Receipt, Plus, Trash2, Edit2, FileText, ChevronDown, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/src/lib/utils';
 import { InvoiceDetailModal } from '@/src/components/InvoiceDetailModal';
 
 import { PrintOrderView } from '@/src/components/PrintOrderView';
 import { ResponsiveDialog } from '@/src/components/ui/responsive-dialog';
+import { ConfirmDialog } from '@/src/components/ui/confirm-dialog';
 
 export function Sales() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -34,6 +35,8 @@ export function Sales() {
   
   const [orderItems, setOrderItems] = useState<{product: string, qty: number}[]>([]);
   const [discount, setDiscount] = useState<number>(0);
+  const [editingSaleId, setEditingSaleId] = useState<string | null>(null);
+  const [saleToDelete, setSaleToDelete] = useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -134,6 +137,41 @@ export function Sales() {
   const totalAmount = resolvedItems.reduce((acc, item) => acc + item.Amount, 0);
   const grandTotal = totalAmount - (Number(discount) || 0);
 
+  
+  const handleEdit = (sale: SaleRecord) => {
+    setEditingSaleId(sale.ID);
+    
+    // Find outlet id by matching name or address
+    const outlet = outlets.find(o => o.Name === sale.OutletName || o.Address === sale.Address);
+    setSelectedOutletId(outlet ? outlet.ID : '');
+    
+    setOutletName(sale.OutletName);
+    setRoute(sale.Route);
+    setAddress(sale.Address);
+    setContactNumber(sale.ContactNumber || '');
+    setOwnerName(sale.OwnerName || '');
+    setStatus(sale.Status || '');
+    
+    setDiscount(sale.Discount);
+    
+    // Map Items to orderItems
+    const newOrderItems = sale.Items.map(item => ({
+      product: item.ProductID || '',
+      qty: item.Quantity
+    }));
+    setOrderItems(newOrderItems);
+    
+    setIsRecording(true);
+  };
+
+  const handleDelete = async () => {
+    if (saleToDelete) {
+      await deleteSale(saleToDelete);
+      setSaleToDelete(null);
+      loadData();
+    }
+  };
+
   const handleRecordSale = async (e: React.FormEvent) => {
     e.preventDefault();
     if (resolvedItems.length === 0) {
@@ -142,8 +180,8 @@ export function Sales() {
     }
 
     const sale: SaleRecord = {
-      ID: Math.floor(Math.random() * 100000).toString(), // Mock Order #
-      Date: new Date().toISOString(),
+      ID: editingSaleId || Math.floor(Math.random() * 100000).toString(), // Mock Order #
+      Date: editingSaleId ? (sales.find(s => s.ID === editingSaleId)?.Date || new Date().toISOString()) : new Date().toISOString(),
       OutletName: outletName,
       Route: route,
       Address: address,
@@ -158,7 +196,12 @@ export function Sales() {
     };
 
     setIsRecording(false);
-    await addSaleRecord(sale);
+    if (editingSaleId) {
+      await updateSale(sale);
+    } else {
+      await addSaleRecord(sale);
+    }
+    setEditingSaleId(null);
     // Reset form
     setSelectedOutletId('');
     setOutletName('');
@@ -169,6 +212,7 @@ export function Sales() {
     setStatus('');
     setOrderItems([]);
     setDiscount(0);
+    setEditingSaleId(null);
     loadData();
   };
 
@@ -210,8 +254,8 @@ export function Sales() {
 
       <ResponsiveDialog 
         isOpen={isRecording} 
-        onClose={() => setIsRecording(false)} 
-        title="New Order"
+        onClose={() => { setIsRecording(false); setEditingSaleId(null); }} 
+        title={editingSaleId ? "Edit Order" : "New Order"}
       >
         <form onSubmit={handleRecordSale} className="space-y-6 pb-12 md:pb-0">
                 
@@ -343,7 +387,7 @@ export function Sales() {
                 
                 <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-6">
                   <Button type="button" variant="outline" onClick={() => setIsRecording(false)}>Cancel</Button>
-                  <Button type="submit" disabled={resolvedItems.length === 0}>Save Order</Button>
+                  <Button type="submit" disabled={resolvedItems.length === 0}>{editingSaleId ? "Update Order" : "Save Order"}</Button>
                 </div>
         </form>
       </ResponsiveDialog>

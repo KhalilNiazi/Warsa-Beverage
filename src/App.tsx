@@ -63,7 +63,7 @@ export default function App() {
         <div className="flex items-center gap-2">
           <img src="/warsa-logo.png" alt="Warsa Pure Water" className="h-8 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling!.style.display = 'block'; }} />
           <Droplet className="h-5 w-5 fill-current hidden" />
-          <span className="font-bold tracking-wider">WARSA PURE WATER</span>
+          <span className="font-bold tracking-wider">KFM Beverages (WARSA)</span>
         </div>
         <div className="w-6"></div>
       </div>
@@ -124,7 +124,7 @@ export default function App() {
             </div>
             <div className="flex flex-col text-center">
               <span className="text-xs font-medium text-red-100 uppercase tracking-widest leading-none mb-1">40-1 Saddar Bazar Lahore</span>
-              <span className="font-bold text-xl leading-none tracking-wider">WARSA</span>
+              <span className="font-bold text-lg leading-none tracking-wider text-center">KFM Beverages<br/>(WARSA)</span>
             </div>
           </div>
         </div>

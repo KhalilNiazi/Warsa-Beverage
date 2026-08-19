@@ -8,6 +8,7 @@ import { BookOpen, Search, Plus, DollarSign, Wallet } from 'lucide-react';
 import { format } from 'date-fns';
 import { InvoiceDetailModal } from '@/src/components/InvoiceDetailModal';
 import { PaymentDetailModal } from '@/src/components/PaymentDetailModal';
+import { ResponsiveDialog } from '@/src/components/ui/responsive-dialog';
 
 type LedgerEntry = {
   id: string;

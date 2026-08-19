@@ -179,7 +179,7 @@ export function DailyReport() {
         ) : (
           <div ref={reportRef} className="w-full bg-[#fff] print:bg-[#fff] text-[#000] font-sans text-xs p-4">
             <div className="text-center mb-4 font-bold text-lg uppercase tracking-widest border-b-2 border-[#000] pb-2">
-              WARSA PURE WATER - DAILY SALES REPORT ({format(parseISO(selectedDate), 'dd MMM yyyy')})
+              KFM Beverages (WARSA) - DAILY SALES REPORT ({format(parseISO(selectedDate), 'dd MMM yyyy')})
             </div>
             {/* Main Table */}
             <table className="w-full border-collapse border border-[#000] mb-4 print:mb-2">
