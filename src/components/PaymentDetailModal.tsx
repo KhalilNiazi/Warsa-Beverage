@@ -57,8 +57,8 @@ export function PaymentDetailModal({ payment, onClose }: PaymentDetailModalProps
   }, [payment]);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center sm:p-4 bg-black/60">
+      <div className="bg-white rounded-t-2xl md:rounded-xl shadow-xl w-full md:w-auto md:min-w-[400px] max-w-md max-h-[90dvh] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 md:zoom-in-95 duration-200">
         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <div>
             <h2 className="text-lg font-bold text-gray-900">{payment.Type === 'RETURN' ? 'Cash Return' : 'Cash Receipt'}</h2>

@@ -1,4 +1,6 @@
-import React from 'react';
+import os
+
+content = """import React from 'react';
 import { SaleRecord, Outlet } from '@/src/types';
 import { format } from 'date-fns';
 import { cn } from '@/src/lib/utils';
@@ -34,7 +36,7 @@ export const PrintOrderView = ({ sale, outlets }: { sale: SaleRecord | null, out
         {`
           @page { size: A4 portrait; margin: 0.5cm; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white; }
-          .print\\:hidden { display: none !important; }
+          .print\\\\:hidden { display: none !important; }
         `}
       </style>
       
@@ -274,3 +276,7 @@ export const PrintOrderView = ({ sale, outlets }: { sale: SaleRecord | null, out
     </div>
   );
 };
+"""
+
+with open('src/components/PrintOrderView.tsx', 'w') as f:
+    f.write(content)

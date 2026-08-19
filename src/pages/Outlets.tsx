@@ -2,16 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card';
 import { Button } from '@/src/components/ui/button';
 import { Input } from '@/src/components/ui/input';
-import { fetchOutlets, fetchInventory, saveOutlet, deleteOutlet } from '@/src/api';
-import { Outlet, InventoryItem } from '@/src/types';
+import { fetchOutlets, fetchInventory, saveOutlet, deleteOutlet, fetchOrderBookers } from '@/src/api';
+import { Outlet, InventoryItem, OrderBooker } from '@/src/types';
 import { Store, Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { ResponsiveDialog } from '@/src/components/ui/responsive-dialog';
+import { ConfirmDialog } from '@/src/components/ui/confirm-dialog';
 
 export function Outlets() {
   const [outlets, setOutlets] = useState<Outlet[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [orderBookers, setOrderBookers] = useState<OrderBooker[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [search, setSearch] = useState('');
+  const [outletToDelete, setOutletToDelete] = useState<string | null>(null);
 
   const [editingOutlet, setEditingOutlet] = useState<Partial<Outlet>>({
     CustomRates: {}
@@ -20,12 +24,14 @@ export function Outlets() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [outletsData, invData] = await Promise.all([
+      const [obsData, outletsData, invData] = await Promise.all([
+        fetchOrderBookers(),
         fetchOutlets(),
         fetchInventory()
       ]);
       setOutlets(outletsData);
       setInventory(invData);
+      setOrderBookers(obsData);
     } catch (err) {
       console.error(err);
     }
@@ -61,9 +67,10 @@ export function Outlets() {
     loadData();
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this outlet?')) {
-      await deleteOutlet(id);
+  const handleDelete = async () => {
+    if (outletToDelete) {
+      await deleteOutlet(outletToDelete);
+      setOutletToDelete(null);
       loadData();
     }
   };
@@ -126,7 +133,16 @@ export function Outlets() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-gray-600 uppercase">Order Booker (OB)</label>
-                  <Input placeholder="Order Booker Name" value={editingOutlet.OB || ''} onChange={e => setEditingOutlet({...editingOutlet, OB: e.target.value})} />
+                  <select 
+                    className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+                    value={editingOutlet.OB || ''} 
+                    onChange={e => setEditingOutlet({...editingOutlet, OB: e.target.value})}
+                  >
+                    <option value="">Select Order Booker</option>
+                    {orderBookers.map(ob => (
+                      <option key={ob.ID} value={ob.Name}>{ob.Name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-gray-600 uppercase">Opening Balance (Rs)</label>
@@ -221,7 +237,7 @@ export function Outlets() {
                       <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setEditingOutlet(outlet); setIsEditing(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
                         <Edit className="h-4 w-4 mr-2" /> Edit
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" onClick={(e) => { e.stopPropagation(); handleDelete(outlet.ID); }}>
+                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" onClick={(e) => { e.stopPropagation(); setOutletToDelete(outlet.ID); }}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -232,6 +248,13 @@ export function Outlets() {
           )}
         </CardContent>
       </Card>
+      <ConfirmDialog
+        isOpen={!!outletToDelete}
+        title="Delete Outlet"
+        description="Are you sure you want to delete this outlet? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setOutletToDelete(null)}
+      />
     </div>
   );
 }

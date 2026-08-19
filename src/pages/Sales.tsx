@@ -10,6 +10,7 @@ import { cn } from '@/src/lib/utils';
 import { InvoiceDetailModal } from '@/src/components/InvoiceDetailModal';
 
 import { PrintOrderView } from '@/src/components/PrintOrderView';
+import { ResponsiveDialog } from '@/src/components/ui/responsive-dialog';
 
 export function Sales() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -207,13 +208,12 @@ export function Sales() {
           </Button>
         </div>
 
-        {isRecording && (
-          <Card className="border-slate-200/60 shadow-md">
-            <CardHeader>
-              <CardTitle>New Order</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleRecordSale} className="space-y-6">
+      <ResponsiveDialog 
+        isOpen={isRecording} 
+        onClose={() => setIsRecording(false)} 
+        title="New Order"
+      >
+        <form onSubmit={handleRecordSale} className="space-y-6 pb-12 md:pb-0">
                 
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-gray-600 uppercase">Select Outlet / Customer</label>
@@ -345,10 +345,8 @@ export function Sales() {
                   <Button type="button" variant="outline" onClick={() => setIsRecording(false)}>Cancel</Button>
                   <Button type="submit" disabled={resolvedItems.length === 0}>Save Order</Button>
                 </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
+        </form>
+      </ResponsiveDialog>
 
         <Card>
           <CardHeader className="pb-3 border-b border-gray-100 px-4 md:px-6">

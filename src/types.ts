@@ -55,6 +55,12 @@ export interface PaymentRecord {
   Type?: 'RECEIPT' | 'RETURN';
 }
 
+export interface OrderBooker {
+  ID: string;
+  Name: string;
+  Phone?: string;
+}
+
 export interface Settings {
   appsScriptUrl: string;
 }

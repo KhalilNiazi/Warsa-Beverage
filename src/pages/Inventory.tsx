@@ -7,11 +7,13 @@ import { fetchInventory, saveInventoryItem, deleteInventoryItem } from '@/src/ap
 import { InventoryItem } from '@/src/types';
 import { Plus, Search, Trash2, Edit2, AlertCircle } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import { ConfirmDialog } from '@/src/components/ui/confirm-dialog';
 
 export function Inventory() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editingItem, setEditingItem] = useState<Partial<InventoryItem>>({});
 
@@ -48,9 +50,10 @@ export function Inventory() {
     loadData();
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-      await deleteInventoryItem(id);
+  const handleDelete = async () => {
+    if (itemToDelete) {
+      await deleteInventoryItem(itemToDelete);
+      setItemToDelete(null);
       loadData();
     }
   };
@@ -194,7 +197,7 @@ export function Inventory() {
                               <Button variant="ghost" size="icon" onClick={() => { setEditingItem(item); setIsEditing(true); }}>
                                 <Edit2 className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" onClick={() => handleDelete(item.ID)}>
+                              <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" onClick={() => setItemToDelete(item.ID)}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -236,7 +239,7 @@ export function Inventory() {
                           <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => { setEditingItem(item); setIsEditing(true); }}>
                             <Edit2 className="h-4 w-4 text-gray-600" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-8 px-2 text-red-500 hover:text-red-700" onClick={() => handleDelete(item.ID)}>
+                          <Button variant="ghost" size="sm" className="h-8 px-2 text-red-500 hover:text-red-700" onClick={() => setItemToDelete(item.ID)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -249,6 +252,13 @@ export function Inventory() {
           )}
         </CardContent>
       </Card>
+      <ConfirmDialog
+        isOpen={!!itemToDelete}
+        title="Delete Product"
+        description="Are you sure you want to delete this product? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setItemToDelete(null)}
+      />
     </div>
   );
 }

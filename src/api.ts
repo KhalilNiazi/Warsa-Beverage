@@ -1,4 +1,4 @@
-import { InventoryItem, SaleRecord, Outlet, PaymentRecord } from './types';
+import { InventoryItem, SaleRecord, Outlet, PaymentRecord, OrderBooker } from './types';
 
 const SETTINGS_KEY = 'warsa_settings';
 const MOCK_INVENTORY_KEY = 'warsa_mock_inventory';
@@ -251,4 +251,30 @@ export const addPaymentRecord = async (payment: PaymentRecord): Promise<void> =>
   });
   const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to record payment');
+};
+
+const MOCK_OBS_KEY = 'warsa_mock_obs';
+
+export const fetchOrderBookers = async (): Promise<OrderBooker[]> => {
+  const data = localStorage.getItem(MOCK_OBS_KEY);
+  if (data) return JSON.parse(data);
+  return [];
+};
+
+export const saveOrderBooker = async (ob: OrderBooker): Promise<void> => {
+  const obs = await fetchOrderBookers();
+  const existingIndex = obs.findIndex(o => o.ID === ob.ID);
+  
+  if (existingIndex >= 0) {
+    obs[existingIndex] = ob;
+  } else {
+    obs.push({ ...ob, ID: Date.now().toString() });
+  }
+  
+  localStorage.setItem(MOCK_OBS_KEY, JSON.stringify(obs));
+};
+
+export const deleteOrderBooker = async (id: string): Promise<void> => {
+  const obs = await fetchOrderBookers();
+  localStorage.setItem(MOCK_OBS_KEY, JSON.stringify(obs.filter(o => o.ID !== id)));
 };
